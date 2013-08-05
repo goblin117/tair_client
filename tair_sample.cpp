@@ -282,7 +282,7 @@ void prefix_api_test(tair_client_api *client_helper)
 
 void count_api_test(tair_client_api *client_helper)
 {
-  data_entry key("cykey");
+  data_entry key("key");
   int init_count = 3;
   int diff_count = 2;
   int ret_count;
