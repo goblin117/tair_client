@@ -28,8 +28,8 @@ int main()
     exit(-1);
   }
 
-  //base_api_test(client_helper);
-  prefix_api_test(client_helper);
+  base_api_test(client_helper);
+  //prefix_api_test(client_helper);
   //count_api_test(client_helper);
   //range_api_test(client_helper);
 
@@ -44,10 +44,10 @@ template<class T> void delete_vec(T* vec)
  typename T::iterator iter = vec->begin();
  for (; iter != vec->end(); iter++)
  {
-   if (NULL != *iter)
+   if (NULL != (*iter))
    {
-     delete *iter;
-     *iter = NULL;
+     delete (*iter);
+     (*iter) = NULL;
    }
  }
  vec->clear();
@@ -112,6 +112,13 @@ void base_api_test(tair_client_api *client_helper)
       mvalues.push_back(tmp_value);
     }
   }
+  char buf[16];
+  sprintf(buf, "%s_%s", "key", "noexist");
+  data_entry* tmp_key = new data_entry(buf); // it will alloc data by default
+  sprintf(buf, "%s_%s", "value", "noexist");
+  data_entry* tmp_value = new data_entry(buf); // it will alloc data by default
+  mkeys.push_back(tmp_key);
+  mvalues.push_back(tmp_value);
 
   ret = client_helper->mget(area, mkeys, mkvs);
   if ((TAIR_RETURN_SUCCESS != ret) && (TAIR_RETURN_PARTIAL_SUCCESS != ret))
@@ -120,7 +127,7 @@ void base_api_test(tair_client_api *client_helper)
   }
   else
   {
-    cout << "mget succ or partly succ. " << endl;
+    cout << "mget succ or partly succ. ret: " << ret << endl;
     cout << "all keys count:" << mkeys.size() << ", succ keys count: " << mkvs.size() << endl;
     int count = mkeys.size();
     for (int i = 0; i < count; i++)
@@ -130,6 +137,8 @@ void base_api_test(tair_client_api *client_helper)
       if ( itr != mkvs.end() )
       {
         cout << "no" << i << ": " << itr->first->get_data() << " => " << itr->second->get_data() << endl;
+        delete itr->first;
+        //itr->first = NULL;
         delete itr->second; 
         itr->second = NULL;
       }
