@@ -16,9 +16,9 @@ void range_api_test(tair_client_api *client_helper);
 
 int main()
 {
-  const char *cs1 = "10.235.145.80:5198";
-  const char *cs2 = "10.235.145.82:5198";
-  const char *group = "group_ldbcommon";
+  const char *cs1 = "xx.xxx.xxx.xx:5198";
+  const char *cs2 = "xx.xxx.xxx.xx:5198";
+  const char *group = "group_name";
 
   tair_client_api *client_helper = new tair_client_api();
   if ( !client_helper->startup(cs1, cs2, group) ){
@@ -29,9 +29,9 @@ int main()
   }
 
   base_api_test(client_helper);
-  //prefix_api_test(client_helper);
-  //count_api_test(client_helper);
-  //range_api_test(client_helper);
+  prefix_api_test(client_helper);
+  count_api_test(client_helper);
+  range_api_test(client_helper);
 
   client_helper->close();
   delete client_helper;
@@ -254,9 +254,29 @@ void prefix_api_test(tair_client_api *client_helper)
     (*kv_itr)->key = NULL;
     delete ((*kv_itr)->value);
     (*kv_itr)->value = NULL;
+    delete *kv_itr;
+    *kv_itr = NULL;
+  }
+  mskvs.clear();
+  tair_dataentry_set::iterator s_itr = skey_set.begin();
+  for (; s_itr != skey_set.end(); s_itr++)
+  {
+    delete (*s_itr);
   }
   skey_set.clear();
+  tair_keyvalue_map::iterator r_itr = result_map.begin();
+  for (; r_itr != result_map.end(); r_itr++)
+  {
+    delete r_itr->first;
+    delete r_itr->second;
+    r_itr->second = NULL;
+  }
   result_map.clear();
+  key_code_map_t::iterator f_itr = failed_map.begin();
+  for (; f_itr != failed_map.end(); f_itr++)
+  {
+    delete f_itr->first;
+  }
   failed_map.clear();
 }
 
