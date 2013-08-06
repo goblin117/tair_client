@@ -16,9 +16,12 @@ void range_api_test(tair_client_api *client_helper);
 
 int main()
 {
-  const char *cs1 = "xx.xxx.xxx.xx:5198";
-  const char *cs2 = "xx.xxx.xxx.xx:5198";
-  const char *group = "group_name";
+  const char *cs1 = "10.235.145.80:5198";
+  const char *cs2 = "10.235.145.82:5198";
+  const char *group = "group_ldbcommon";
+  //const char *cs1 = "xx.xxx.xxx.xx:5198";
+  //const char *cs2 = "xx.xxx.xxx.xx:5198";
+  //const char *group = "group_name";
 
   tair_client_api *client_helper = new tair_client_api();
   if ( !client_helper->startup(cs1, cs2, group) ){
@@ -235,6 +238,15 @@ void prefix_api_test(tair_client_api *client_helper)
     }
     else
     {
+      key_code_map_t::iterator f_itr = failed_map.begin();
+      for (; f_itr != failed_map.end(); f_itr++)
+      {
+        if (NULL != (f_itr->first))
+        {
+          delete f_itr->first;
+        }
+      }
+      failed_map.clear();
       cout << "prefix_gets succ. pkey: " << pkey.get_data() << ", ret: " << ret << endl; 
       if (TAIR_RETURN_SUCCESS != (ret = client_helper->prefix_removes(area, pkey, skey_set, failed_map)))
       {
@@ -250,34 +262,55 @@ void prefix_api_test(tair_client_api *client_helper)
   vector<key_value_pack_t*>::iterator kv_itr = mskvs.begin();
   for (; kv_itr != mskvs.end(); kv_itr++)
   {
-    delete ((*kv_itr)->key);
-    (*kv_itr)->key = NULL;
-    delete ((*kv_itr)->value);
-    (*kv_itr)->value = NULL;
-    delete *kv_itr;
-    *kv_itr = NULL;
+    if (NULL != ((*kv_itr)->key))
+    {
+      delete ((*kv_itr)->key);
+      (*kv_itr)->key = NULL;
+    }
+    if (NULL != ((*kv_itr)->value))
+    {
+      delete ((*kv_itr)->value);
+      (*kv_itr)->value = NULL;
+    }
+    if (NULL != (*kv_itr))
+    {
+      delete *kv_itr;
+      *kv_itr = NULL;
+    }
   }
   mskvs.clear();
-  tair_dataentry_set::iterator s_itr = skey_set.begin();
-  for (; s_itr != skey_set.end(); s_itr++)
-  {
-    delete (*s_itr);
-  }
+  //skey_set has release in mskvs, so just clear
   skey_set.clear();
+  //hashmap ++operator use old node to get the bucket number of new node,
+  //so push the first point to a tmp vector, ugly......
+  tair_dataentry_vector tmp_vec;
   tair_keyvalue_map::iterator r_itr = result_map.begin();
   for (; r_itr != result_map.end(); r_itr++)
   {
-    delete r_itr->first;
-    delete r_itr->second;
-    r_itr->second = NULL;
+    if (NULL != (r_itr->first))
+    {
+      tmp_vec.push_back(r_itr->first);
+      //delete r_itr->first;
+    }
+    if (NULL != r_itr->second)
+    {
+      delete r_itr->second;
+      r_itr->second = NULL;
+    }
   }
   result_map.clear();
+  delete_vec(&tmp_vec);
   key_code_map_t::iterator f_itr = failed_map.begin();
   for (; f_itr != failed_map.end(); f_itr++)
   {
-    delete f_itr->first;
+    if (NULL != (f_itr->first))
+    {
+      tmp_vec.push_back(f_itr->first);
+      //delete f_itr->first;
+    }
   }
   failed_map.clear();
+  delete_vec(&tmp_vec);
 }
 
 void count_api_test(tair_client_api *client_helper)
